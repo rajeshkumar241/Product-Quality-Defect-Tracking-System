@@ -1,0 +1,165 @@
+/* Custom Quality Tracking Design Enhancements */
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #0f172a;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Pulse indicator */
+.live-pulse {
+  position: relative;
+}
+.live-pulse::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Lifecycle Stepper styling */
+.stepper-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stepper-item::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background-color: #e2e8f0;
+  z-index: 1;
+}
+
+.stepper-item:first-child::before {
+  display: none;
+}
+
+.stepper-item.completed::before,
+.stepper-item.active::before {
+  background-color: #2563eb;
+}
+
+.stepper-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  font-weight: 600;
+  font-size: 0.875rem;
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.stepper-item.active .stepper-circle {
+  border-color: #2563eb;
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+.stepper-item.completed .stepper-circle {
+  border-color: #10b981;
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* 5 Whys Branch Connector */
+.why-node {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+.why-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  bottom: -16px;
+  width: 2px;
+  height: 16px;
+  background: #cbd5e1;
+}
+
+/* Kanban column min-width */
+.kanban-col {
+  min-width: 280px;
+}
+
+/* Toast animations */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  animation: slideIn 0.25s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

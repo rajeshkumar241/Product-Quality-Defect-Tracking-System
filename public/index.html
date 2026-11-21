@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Quality & Defect Tracking System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for Pareto & Trend analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-md">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            QualiTrack Pro
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-800">ISO 9001 / Six Sigma</span>
+          </h1>
+          <p class="text-xs text-slate-400">Product Quality & Defect Tracking System</p>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden sm:flex items-center space-x-2 px-3 py-1 bg-slate-800/80 rounded-full border border-slate-700 text-xs text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 live-pulse"></span>
+          <span>SQLite Engine Active</span>
+        </div>
+        <button id="btn-seed-data" class="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Reset Demo Data
+        </button>
+        <button id="btn-open-log-modal" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Log New Defect
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Sub-bar -->
+  <nav class="bg-white border-b border-slate-200 sticky top-16 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-8 overflow-x-auto">
+      <button class="nav-tab active border-b-2 border-blue-600 py-3 px-1 text-sm font-semibold text-blue-600 flex items-center gap-2" data-tab="tab-dashboard">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Quality Dashboard & KPIs
+      </button>
+
+      <button class="nav-tab border-b-2 border-transparent py-3 px-1 text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2" data-tab="tab-defects">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        Defect Tracking Board
+        <span id="badge-total-defects" class="ml-1.5 px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">0</span>
+      </button>
+
+      <button class="nav-tab border-b-2 border-transparent py-3 px-1 text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2" data-tab="tab-workspace" id="nav-tab-workspace">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+        Defect Lifecycle & RCA Workspace
+      </button>
+
+      <button class="nav-tab border-b-2 border-transparent py-3 px-1 text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2" data-tab="tab-batches">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+        </svg>
+        Batches & Inspection Gates
+      </button>
+
+      <button class="nav-tab border-b-2 border-transparent py-3 px-1 text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2" data-tab="tab-products">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        Products & Specs
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: EXECUTIVE QUALITY DASHBOARD -->
+    <!-- ========================================== -->
+    <section id="tab-dashboard" class="space-y-6">
+      
+      <!-- Top Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <!-- Card 1: First Pass Yield -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>First Pass Yield (FPY)</span>
+            <span class="text-emerald-500">Target >= 98.5%</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-fpy" class="text-3xl font-extrabold text-slate-900">--%</span>
+            <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Six Sigma</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">Total units passing on first pass</p>
+        </div>
+
+        <!-- Card 2: DPMO -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>DPMO</span>
+            <span class="text-blue-500">Benchmark</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-dpmo" class="text-3xl font-extrabold text-blue-600">--</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">Defects Per Million Opportunities</p>
+        </div>
+
+        <!-- Card 3: Defect Density -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>Defect Density</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-density" class="text-3xl font-extrabold text-slate-900">--</span>
+            <span class="text-xs text-slate-500">per 1k</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">Defects / 1,000 units inspected</p>
+        </div>
+
+        <!-- Card 4: Open Defects -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>Active Defects</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-open" class="text-3xl font-extrabold text-amber-600">--</span>
+            <span id="metric-total" class="text-xs text-slate-400">of -- total</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">In investigation & triage</p>
+        </div>
+
+        <!-- Card 5: Critical Defects -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>Critical Severity</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-critical" class="text-3xl font-extrabold text-rose-600">--</span>
+            <span class="text-xs font-medium text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">High Risk</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">Immediate containment required</p>
+        </div>
+
+        <!-- Card 6: MTTR -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <span>Mean MTTR</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="metric-mttr" class="text-3xl font-extrabold text-indigo-600">--</span>
+            <span class="text-xs text-slate-500">hrs</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">Time to resolution & verification</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Pareto Analysis Chart (2 Columns) -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                Pareto Analysis (80/20 Defect Rule)
+                <span class="text-xs font-normal text-slate-500">Category Frequency & Cumulative %</span>
+              </h3>
+              <p class="text-xs text-slate-400">Identify the top 20% of root defect types generating 80% of total quality deviations.</p>
+            </div>
+            <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">Continuous Improvement</span>
+          </div>
+          <div class="flex-1 min-h-[300px] relative">
+            <canvas id="paretoChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Distribution Charts (1 Column) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col space-y-4">
+          <h3 class="text-base font-bold text-slate-900">Severity & Status Breakdown</h3>
+          <div class="flex-1 min-h-[200px] relative">
+            <canvas id="severityChart"></canvas>
+          </div>
+          <!-- Quick Status Pills -->
+          <div id="status-distribution-pills" class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent Defects & High Priority Alerts -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            Priority Action Required
+            <span class="text-xs font-normal text-slate-500">Defects requiring containment or RCA sign-off</span>
+          </h3>
+          <button class="text-xs font-medium text-blue-600 hover:text-blue-800 transition" onclick="document.querySelector('[data-tab=tab-defects]').click()">View All Defect Logs &rarr;</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+              <tr>
+                <th class="px-5 py-3">Defect ID</th>
+                <th class="px-5 py-3">Title & Issue</th>
+                <th class="px-5 py-3">Product / Batch</th>
+                <th class="px-5 py-3">Severity</th>
+                <th class="px-5 py-3">Lifecycle Status</th>
+                <th class="px-5 py-3">Assignee</th>
+                <th class="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-priority-tbody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 2: DEFECT TRACKING BOARD & LIST -->
+    <!-- ========================================== -->
+    <section id="tab-defects" class="hidden space-y-6">
+      
+      <!-- Controls & Filter Toolbar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+          <!-- Search box -->
+          <div class="relative w-full sm:w-64">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" id="defect-search-input" placeholder="Search ID, title, lot #..." class="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <!-- Status Filter -->
+          <select id="filter-status" class="py-1.5 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">All Statuses</option>
+            <option value="NEW">New (Unassigned)</option>
+            <option value="TRIAGED">Triaged</option>
+            <option value="UNDER_INVESTIGATION">Under Investigation</option>
+            <option value="RCA_COMPLETED">RCA Completed</option>
+            <option value="CAPA_PENDING">CAPA Pending</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="VERIFIED_CLOSED">Verified Closed</option>
+          </select>
+
+          <!-- Severity Filter -->
+          <select id="filter-severity" class="py-1.5 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="MAJOR">Major</option>
+            <option value="MINOR">Minor</option>
+          </select>
+
+          <!-- Product Filter -->
+          <select id="filter-product" class="py-1.5 px-3 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">All Products</option>
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <!-- View Switcher (Table / Kanban) -->
+        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+          <button id="btn-view-table" class="px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-xs flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            Table View
+          </button>
+          <button id="btn-view-kanban" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+            </svg>
+            Kanban Board
+          </button>
+        </div>
+      </div>
+
+      <!-- View 1: Data Table View -->
+      <div id="defects-view-table" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+              <tr>
+                <th class="px-5 py-3">Defect ID</th>
+                <th class="px-5 py-3">Title & Issue</th>
+                <th class="px-5 py-3">Product / Batch</th>
+                <th class="px-5 py-3">Type</th>
+                <th class="px-5 py-3">Severity</th>
+                <th class="px-5 py-3">Priority</th>
+                <th class="px-5 py-3">Lifecycle Status</th>
+                <th class="px-5 py-3">RCA / CAPA</th>
+                <th class="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="defects-tbody" class="divide-y divide-slate-100">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- View 2: Kanban View -->
+      <div id="defects-view-kanban" class="hidden overflow-x-auto pb-4">
+        <div class="flex gap-4 min-w-[1200px]" id="kanban-columns-container">
+          <!-- Populated by JS: NEW, TRIAGED, UNDER_INVESTIGATION, RCA_COMPLETED, CAPA_PENDING, RESOLVED, VERIFIED_CLOSED -->
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 3: DEFECT LIFECYCLE & RCA WORKSPACE -->
+    <!-- ========================================== -->
+    <section id="tab-workspace" class="hidden space-y-6">
+      
+      <!-- Defect Selector Banner -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <span class="text-xs font-semibold uppercase text-slate-400">Current Workspace Defect:</span>
+          <select id="workspace-defect-select" class="font-bold text-slate-900 border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div class="flex items-center space-x-2" id="workspace-lifecycle-actions">
+          <!-- Dynamic transition action buttons generated via JS -->
+        </div>
+      </div>
+
+      <!-- Visual Defect Lifecycle Stepper -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Standard Quality Lifecycle Process</h3>
+          <span id="workspace-current-status-badge" class="px-3 py-1 rounded-full text-xs font-bold">STATUS</span>
+        </div>
+        <div class="flex items-center justify-between pt-2" id="lifecycle-stepper-container">
+          <!-- Stepper items generated via JS -->
+        </div>
+      </div>
+
+      <!-- Main Workspace Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 Cols: Details, 5-Whys RCA, CAPA -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Defect Details Card -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span id="detail-id-tag" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">DEF-XXXX</span>
+                <h2 id="detail-title" class="text-xl font-bold text-slate-900 mt-1">Defect Title</h2>
+                <p id="detail-product-info" class="text-xs text-slate-500 mt-0.5">Product SKU | Batch Number</p>
+              </div>
+              <div class="text-right">
+                <span id="detail-severity-badge" class="px-2.5 py-1 rounded-full text-xs font-bold">SEVERITY</span>
+                <p id="detail-priority-text" class="text-xs text-slate-400 mt-1">Priority: P1</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div class="p-3 bg-slate-50 rounded-lg">
+                <span class="font-semibold text-slate-500 block">Inspection Checkpoint</span>
+                <span id="detail-checkpoint" class="font-medium text-slate-800 text-sm">--</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-lg">
+                <span class="font-semibold text-slate-500 block">Reported By / Date</span>
+                <span id="detail-reporter" class="font-medium text-slate-800 text-sm">--</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="font-semibold text-xs text-slate-500 uppercase tracking-wider block mb-1">Issue Description</span>
+              <p id="detail-description" class="text-sm text-slate-700 bg-slate-50/70 p-3.5 rounded-lg border border-slate-200">--</p>
+            </div>
+
+            <div>
+              <span class="font-semibold text-xs text-slate-500 uppercase tracking-wider block mb-1">Containment Action Taken</span>
+              <p id="detail-containment" class="text-sm text-amber-900 bg-amber-50/70 p-3.5 rounded-lg border border-amber-200">--</p>
+            </div>
+
+            <div id="detail-resolution-box" class="hidden">
+              <span class="font-semibold text-xs text-emerald-700 uppercase tracking-wider block mb-1">Final Resolution & Verification Summary</span>
+              <p id="detail-resolution-text" class="text-sm text-emerald-950 bg-emerald-50 p-3.5 rounded-lg border border-emerald-200">--</p>
+            </div>
+          </div>
+
+          <!-- 5-Whys Root Cause Analysis (RCA) Tool -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  Root Cause Analysis (5-Whys & Ishikawa)
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Root Cause Engine</span>
+                </h3>
+                <p class="text-xs text-slate-400">Drill down past immediate symptoms to identify fundamental systemic process failure.</p>
+              </div>
+              <button id="btn-save-rca" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Save RCA & Advance
+              </button>
+            </div>
+
+            <!-- Ishikawa 6M Category -->
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="text-xs font-semibold text-slate-600">Ishikawa (Fishbone) 6M Factor:</label>
+              <select id="rca-category" class="text-xs font-semibold rounded-lg border border-slate-300 px-3 py-1.5 bg-white">
+                <option value="MACHINE">Machine (Tool wear, calibration, vibration, hardware)</option>
+                <option value="METHOD">Method (SOP deviations, speed, timing, sequence)</option>
+                <option value="MATERIAL">Material (Alloy purity, dimensional variance, supplier defect)</option>
+                <option value="MANPOWER">Manpower (Training, fatigue, shift change oversight)</option>
+                <option value="MEASUREMENT">Measurement (Sensor drift, gauge repeatability, inspection gauge error)</option>
+                <option value="ENVIRONMENT">Environment (Cleanroom humidity, thermal fluctuation, particulates)</option>
+              </select>
+            </div>
+
+            <!-- 5 Whys Chain Inputs -->
+            <div class="space-y-3 pt-2">
+              <div class="why-node flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">W1</span>
+                <div class="flex-1">
+                  <label class="text-xs font-medium text-slate-500 block mb-1">Why 1: Why did the immediate defect occur?</label>
+                  <input type="text" id="rca-why-1" placeholder="e.g. Excessive solder paste volume remained on stencil apertures..." class="w-full text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="why-node flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">W2</span>
+                <div class="flex-1">
+                  <label class="text-xs font-medium text-slate-500 block mb-1">Why 2: Why did condition 1 happen?</label>
+                  <input type="text" id="rca-why-2" placeholder="e.g. Stencil wipe solvent roll dried out midway through run..." class="w-full text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="why-node flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">W3</span>
+                <div class="flex-1">
+                  <label class="text-xs font-medium text-slate-500 block mb-1">Why 3: Why did condition 2 happen?</label>
+                  <input type="text" id="rca-why-3" placeholder="e.g. Automated solvent dispensing nozzle suffered partial flux crystallization clog..." class="w-full text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="why-node flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">W4</span>
+                <div class="flex-1">
+                  <label class="text-xs font-medium text-slate-500 block mb-1">Why 4: Why was condition 3 not caught or prevented?</label>
+                  <input type="text" id="rca-why-4" placeholder="e.g. No liquid flow-rate telemetry monitor was installed on nozzle line..." class="w-full text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="why-node flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">W5</span>
+                <div class="flex-1">
+                  <label class="text-xs font-medium text-slate-500 block mb-1">Why 5: Why did the systemic failure or policy gap exist?</label>
+                  <input type="text" id="rca-why-5" placeholder="e.g. Preventative nozzle sonic bath cleaning frequency was 48 hours instead of 12 hours..." class="w-full text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <label class="text-xs font-bold text-slate-700 block mb-1 uppercase tracking-wide">Root Cause Conclusion</label>
+                <textarea id="rca-conclusion" rows="2" placeholder="Synthesized systemic root cause..." class="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAPA (Corrective and Preventive Actions) Action Plan -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  CAPA Action Plan (Corrective & Preventive Actions)
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">ISO 13485 / IATF 16949</span>
+                </h3>
+                <p class="text-xs text-slate-400">Implement permanent corrective repairs and preventive mistake-proofing (Poka-Yoke).</p>
+              </div>
+              <button id="btn-open-add-capa" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add CAPA Action
+              </button>
+            </div>
+
+            <!-- CAPA List Container -->
+            <div id="capa-items-container" class="space-y-3">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 1 Col: Audit Trail & Engineering Comments -->
+        <div class="space-y-6">
+          
+          <!-- Audit Trail & Traceability Log -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col">
+            <div class="border-b border-slate-100 pb-3 mb-3">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Immutable Audit Trail
+              </h3>
+              <p class="text-xs text-slate-400">Full tamper-evident compliance history</p>
+            </div>
+
+            <div id="audit-trail-container" class="space-y-3 max-h-96 overflow-y-auto pr-1 text-xs">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <!-- Engineering Collaboration & Comments -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col space-y-4">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                Engineering Discussion
+              </h3>
+              <p class="text-xs text-slate-400">Observations & containment updates</p>
+            </div>
+
+            <!-- Comments List -->
+            <div id="comments-container" class="space-y-3 max-h-60 overflow-y-auto pr-1 text-xs">
+              <!-- Populated via JS -->
+            </div>
+
+            <!-- Add Comment Form -->
+            <div class="pt-2 border-t border-slate-100 flex gap-2">
+              <input type="text" id="comment-input" placeholder="Add engineering note..." class="flex-1 text-xs px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <button id="btn-submit-comment" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">Post</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 4: BATCHES & INSPECTION GATES -->
+    <!-- ========================================== -->
+    <section id="tab-batches" class="hidden space-y-6">
+      
+      <!-- Batches Toolbar -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Production Batches & Quality Gates</h2>
+          <p class="text-xs text-slate-500">Track units inspected, pass rates, and active defects per manufacturing lot.</p>
+        </div>
+        <button id="btn-open-create-batch" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          New Production Batch
+        </button>
+      </div>
+
+      <!-- Batches Grid -->
+      <div id="batches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Populated via JS -->
+      </div>
+
+      <!-- Inspection Checkpoints Reference Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden mt-8">
+        <div class="px-5 py-4 border-b border-slate-200">
+          <h3 class="text-base font-bold text-slate-900">Configured Inspection Checkpoints by Stage</h3>
+          <p class="text-xs text-slate-400">Quality criteria applied during receiving, assembly, and final testing</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+              <tr>
+                <th class="px-5 py-3">Checkpoint ID</th>
+                <th class="px-5 py-3">Quality Gate Name</th>
+                <th class="px-5 py-3">Manufacturing Stage</th>
+                <th class="px-5 py-3">Acceptance Criteria & Specification</th>
+                <th class="px-5 py-3">Default Severity</th>
+              </tr>
+            </thead>
+            <tbody id="checkpoints-tbody" class="divide-y divide-slate-100">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 5: PRODUCTS & SPECIFICATIONS -->
+    <!-- ========================================== -->
+    <section id="tab-products" class="hidden space-y-6">
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Product Line Catalog & Target FPY</h2>
+          <p class="text-xs text-slate-500">Master product records, target yields, and historical defect frequency.</p>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Populated via JS -->
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: LOG NEW DEFECT -->
+  <!-- ========================================== -->
+  <div id="modal-log-defect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Log New Quality Defect</h3>
+          <p class="text-xs text-slate-500">Initiate formal defect record with automatic triage assignment</p>
+        </div>
+        <button class="modal-close text-slate-400 hover:text-slate-600 transition" data-modal="modal-log-defect">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="form-log-defect" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Defect Title / Summary *</label>
+          <input type="text" id="input-defect-title" required placeholder="e.g. Delamination along edge connector during wave solder..." class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Product *</label>
+            <select id="select-defect-product" required class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Production Batch / Lot # *</label>
+            <select id="select-defect-batch" required class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Defect Type *</label>
+            <select id="select-defect-type" required class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+              <option value="DIMENSIONAL">Dimensional (GD&T)</option>
+              <option value="SURFACE_FINISH">Surface Finish / Cosmetic</option>
+              <option value="ELECTRICAL">Electrical / Electronic</option>
+              <option value="STRUCTURAL">Structural / Mechanical</option>
+              <option value="PACKAGING">Packaging / Seal</option>
+              <option value="SOFTWARE_FIRMWARE">Software / Firmware</option>
+              <option value="CONTAMINATION">Material Contamination</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Severity *</label>
+            <select id="select-defect-severity" required class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+              <option value="CRITICAL">Critical (Stop Ship)</option>
+              <option value="MAJOR" selected>Major (Out of Spec)</option>
+              <option value="MINOR">Minor (Cosmetic / Marginal)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Priority *</label>
+            <select id="select-defect-priority" required class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+              <option value="P1_URGENT">P1 - Urgent</option>
+              <option value="P2_HIGH" selected>P2 - High</option>
+              <option value="P3_MEDIUM">P3 - Medium</option>
+              <option value="P4_LOW">P4 - Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Inspection Checkpoint</label>
+          <select id="select-defect-checkpoint" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <option value="">-- None / Ad-hoc Discovery --</option>
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Detailed Description & Symptoms *</label>
+          <textarea id="input-defect-desc" rows="3" required placeholder="Describe non-conformance, measured values vs spec limits..." class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Immediate Containment Action (e.g. Lot Quarantined)</label>
+          <input type="text" id="input-defect-containment" placeholder="e.g. Lot quarantined in Cage B; Line 2 feed halted." class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Discovered By (Inspector Name) *</label>
+            <input type="text" id="input-defect-discovered-by" required value="Marcus Vance (Senior QC Tech)" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Assign To Lead Engineer</label>
+            <input type="text" id="input-defect-assigned-to" placeholder="e.g. Dr. Sarah Lin (QA Lead)" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+          <button type="button" class="modal-close px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition" data-modal="modal-log-defect">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">Log Defect</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: ADD CAPA ACTION -->
+  <!-- ========================================== -->
+  <div id="modal-add-capa" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Add CAPA Action Item</h3>
+          <p class="text-xs text-slate-500">Corrective or Preventive Action with designated owner</p>
+        </div>
+        <button class="modal-close text-slate-400 hover:text-slate-600" data-modal="modal-add-capa">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="form-add-capa" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Action Type *</label>
+          <select id="input-capa-type" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+            <option value="CORRECTIVE">Corrective Action (Eliminate existing defect root cause)</option>
+            <option value="PREVENTIVE">Preventive Action (Prevent recurrence across lines/products)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Action Description *</label>
+          <textarea id="input-capa-desc" required rows="3" placeholder="Specific technical steps, hardware replacement, calibration, or training..." class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Designated Owner *</label>
+            <input type="text" id="input-capa-owner" required placeholder="Name & Role" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Completion Date *</label>
+            <input type="date" id="input-capa-date" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
+          <button type="button" class="modal-close px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 text-xs" data-modal="modal-add-capa">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Save Action</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: CREATE PRODUCTION BATCH -->
+  <!-- ========================================== -->
+  <div id="modal-create-batch" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Create Production Batch</h3>
+          <p class="text-xs text-slate-500">Register manufacturing lot for quality tracking</p>
+        </div>
+        <button class="modal-close text-slate-400 hover:text-slate-600" data-modal="modal-create-batch">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="form-create-batch" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Batch / Lot Number *</label>
+          <input type="text" id="input-batch-number" required placeholder="e.g. B-TB-2026-092" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Product *</label>
+          <select id="select-batch-product" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Units Produced *</label>
+            <input type="number" id="input-batch-units" required min="1" value="1000" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Manufacturing Line</label>
+            <input type="text" id="input-batch-line" value="Line A - CNC Precision" class="w-full px-3 py-1.5 rounded-lg border border-slate-300">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
+          <button type="button" class="modal-close px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 text-xs" data-modal="modal-create-batch">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">Create Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container"></div>
+
+  <!-- Client Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>

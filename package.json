@@ -1,0 +1,22 @@
+{
+  "name": "product-quality-defect-tracking-system",
+  "version": "1.0.0",
+  "description": "Enterprise-grade Product Quality & Defect Tracking System with RCA (5-Whys), CAPA, and Quality Analytics",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "agy-node backend/server.js",
+    "seed": "agy-node backend/seed.js",
+    "test": "agy-node backend/test.js"
+  },
+  "keywords": [
+    "quality-assurance",
+    "defect-tracking",
+    "rca-5whys",
+    "capa",
+    "manufacturing-quality",
+    "fp-yield",
+    "dpmo"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT"
+}

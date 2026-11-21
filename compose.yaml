@@ -1,0 +1,13 @@
+
+services:
+  product-quality:
+    build: .
+    container_name: product-quality-app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - quality_data:/app/instance
+
+volumes:
+  quality_data:
